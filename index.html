@@ -321,7 +321,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     {s:570,t:'صحيان - فطار وبعدين تمرين',d:'أربع، خميس، جمعة'},
     {s:660,t:'ابدأ المذاكرة',d:'أربع، خميس، جمعة'},
     {s:990,t:'اتحرك للشغل',d:'كل يوم'},
-    {s:1410,t:'هواية خفيفة وبعدها نوم ١٢',d:'جمعة، سبت، حد، اتنين'}
+    {s:1410,t:'هواية خفيفة وبعدها نوم ١٢',d:'جمعة، حد'}
   ];
   function isCollege(dow){return dow===6||dow===0||dow===1||dow===2;}
   function tasksFor(dow,d){
@@ -333,8 +333,9 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       t.push({k:'learn',s:660,e:690,cat:'learn',t:'فيديو برامج (AutoCAD)',n:'٢٠ - ٣٠ دقيقة في فراغ المحاضرات'});
       t.push({k:'lunch',s:900,e:930,cat:'food',t:'غدا'});
       if(dow===0) t.push({k:'fit',s:930,e:960,cat:'fit',t:'مشاية وبطن',n:'مشاية ٢٠ دقيقة وبطن خفيف'});
-      t.push({k:'rest',s:(dow===0?960:930),e:990,cat:'play',t:'أنمي أو راحة'});
-      if(dow!==2) t.push({k:'hobby',s:1410,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
+      if(dow===0) t.push({k:'rest',s:960,e:990,cat:'play',t:'أنمي أو راحة'});
+      else t.push({k:'rest',s:930,e:990,cat:'sleep',t:'راحة قبل الشغل'});
+      if(dow===0) t.push({k:'hobby',s:1410,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
     }else{
       t.push({k:'wake',s:570,e:600,cat:'sleep',t:'صحيان وفطار',al:1});
       if(dow===3) t.push({k:'fit',s:600,e:645,cat:'fit',t:'تمرين: ضغط وبطن',n:'مشاية ١٠ دقايق إحماء ثم ضغط وبطن (٤٥ دقيقة)'});
