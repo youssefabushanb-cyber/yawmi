@@ -174,6 +174,13 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
 @media (prefers-reduced-motion:no-preference){
   .chk,.row,.dbtn{transition:background .15s,border-color .15s}
 }
+
+.banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--now-bg);border:1px solid var(--accent);border-radius:10px;padding:12px 14px}
+.banner strong{font-weight:600}
+.banner p{margin:0;font-size:14px;color:var(--muted)}
+.pbtn{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:8px;padding:6px 16px;min-height:44px;cursor:pointer;font-weight:600;align-self:flex-start}
+.okmsg{margin:0;color:var(--ok);font-size:14px}
+.rep{width:100%;box-sizing:border-box;font:inherit;font-size:14px;line-height:1.7;background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;resize:vertical;min-height:9rem}
 </style>
 </head>
 <body>
@@ -235,7 +242,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     return DAYS[d.getDay()]+' '+ar(d.getDate())+' '+MONTHS[d.getMonth()];
   }
 
-  var state={days:{},mk:{},meta:{since:null,city:0,u:0},weekOff:0,sel:null,online:(typeof navigator!=='undefined'?navigator.onLine!==false:true),cloud:false,synced:0};
+  var state={days:{},mk:{},meta:{since:null,city:0,u:0},weekOff:0,sel:null,updated:false,toast:'',reg:null,online:(typeof navigator!=='undefined'?navigator.onLine!==false:true),cloud:false,synced:0};
   var dbCol=null,writing=Promise.resolve(),lastHtml='';
   var pcache={};
 
@@ -617,6 +624,55 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     }).join('');
   }
 
+  function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function buildReport(){
+    var now=new Date(),today=dkey(now),m=mins(now),since=state.meta.since||today;
+    var start=addDays(now,-((now.getDay()+1)%7)),end=addDays(start,6),dates=[];
+    for(var i=0;i<7;i++) dates.push(addDays(start,i));
+    var tot={study:0,fit:0,learn:0},dn={study:0,fit:0,learn:0},comp=0,missed=[];
+    dates.forEach(function(d){
+      var dk=dkey(d);
+      if(dk>today||dk<since) return;
+      tasksFor(d.getDay()).forEach(function(t){
+        if(!CATS[t.cat]) return;
+        var mk=state.mk['o'+dk+'_'+t.k],mdone=mkLive(mk)&&!!mk.done,done=isDone(dk,t.k);
+        var over=dk<today||m>=t.e;
+        if(done||mdone){tot[t.cat]++;dn[t.cat]++;if(mdone&&!done) comp++;}
+        else if(over){
+          tot[t.cat]++;
+          missed.push(t.t+' ('+DAYS[d.getDay()]+' '+ar(d.getDate())+')'+(mkLive(mk)&&mk.tr?' - التعويض اتأجل '+times(mk.tr):''));
+        }
+      });
+    });
+    var pend=Object.keys(state.mk).filter(function(id){var x=state.mk[id];return mkLive(x)&&!x.done;}).length;
+    var c=CITIES[state.meta.city|0]||CITIES[0],sd=parseKey(since),L=[];
+    L.push('تقرير الأسبوع ('+ar(start.getDate())+(start.getMonth()!==end.getMonth()?' '+MONTHS[start.getMonth()]:'')+' - '+ar(end.getDate())+' '+MONTHS[end.getMonth()]+' '+ar(end.getFullYear())+')');
+    L.push('الحساب من يوم '+ar(sd.getDate())+' '+MONTHS[sd.getMonth()]);
+    Object.keys(CATS).forEach(function(k){L.push('- '+CATS[k]+': '+ar(dn[k])+' من '+ar(tot[k]));});
+    L.push('اتعوّض: '+ar(comp));
+    L.push('تعويضات مستنية: '+ar(pend));
+    if(missed.length){L.push('فاتني ومعوّضتوش:');missed.forEach(function(x){L.push('- '+x);});}
+    else L.push('مفيش حاجة فاتتني.');
+    L.push('المدينة: '+c.n);
+    L.push('اللي عايز أغيّره: ');
+    return L.join('\n');
+  }
+  function toast(msg){state.toast=msg;render();setTimeout(function(){state.toast='';render();},3500);}
+  function fallbackCopy(t){
+    var ok=false;
+    try{var ta=document.getElementById('rep');if(ta){ta.focus();ta.select();ok=document.execCommand('copy');}}catch(e){}
+    toast(ok?'اتنسخ. الصقه في المحادثة مع Claude.':'حدّد النص اللي تحت واعمل نسخ بإيدك.');
+  }
+  function copyReport(){
+    var t=buildReport();
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(t).then(function(){toast('اتنسخ. الصقه في المحادثة مع Claude.');},function(){fallbackCopy(t);});
+      }else fallbackCopy(t);
+    }catch(e){fallbackCopy(t);}
+  }
+  function checkUpdate(){try{if(state.reg) state.reg.update().catch(function(){});}catch(e){}}
+
   function render(){
     var now=new Date();
     var today=dkey(now),m=mins(now);
@@ -692,9 +748,12 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     var status=state.cloud?(state.online?'متصل ومتزامن':'مفيش نت. اللي بتعلّم عليه بيتحفظ على الجهاز وهيتزامن لما النت يرجع'):'بيتحفظ على الجهاز ده بس';
     var synced=(state.cloud&&state.synced)?' · آخر مزامنة '+fmt(mins(new Date(state.synced))):'';
 
-    var html=nowcard+wk+'<nav class="strip" aria-label="أيام الأسبوع">'+strip+'</nav>'+head+banner+list+
+    var updBanner=state.updated?'<div class="banner" role="status"><div><strong>فيه نسخة جديدة</strong><p>اتنزّلت نسخة محدّثة من التطبيق.</p></div><button class="pbtn" data-act="reload">حدّث دلوقتي</button></div>':'';
+    var reportHtml='<section class="sec"><h2>تقرير الأسبوع</h2><button class="pbtn" data-act="report">انسخ تقرير الأسبوع</button>'+(state.toast?'<p class="okmsg" role="status">'+state.toast+'</p>':'')+'<textarea id="rep" class="rep" readonly rows="9" aria-label="تقرير الأسبوع">'+esc(buildReport())+'</textarea></section>';
+    var html=updBanner+nowcard+wk+'<nav class="strip" aria-label="أيام الأسبوع">'+strip+'</nav>'+head+banner+list+
       '<section class="sec"><h2>التعويضات المستنية</h2>'+pendHtml+'</section>'+
       '<section class="sec"><h2>الأسبوع ده</h2><div class="meters">'+weekMeters(dates,now)+'</div></section>'+
+      reportHtml+
       '<section class="sec"><h2>منبهات الموبايل</h2><ul class="alarms">'+alarms+'</ul></section>'+
       '<section class="set"><label for="city">المدينة (لمواعيد الصلاة)</label><select id="city">'+opts+'</select></section>'+
       '<footer class="foot"><div class="stat"><span class="dot'+(state.online?'':' off')+'"></span><span>'+status+synced+'</span></div>'+
@@ -740,6 +799,8 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     else if(a==='wprev'){state.weekOff=Math.max(-8,state.weekOff-1);render();}
     else if(a==='wnext'){state.weekOff=Math.min(8,state.weekOff+1);render();}
     else if(a==='wtoday'){state.weekOff=0;state.sel=((new Date()).getDay()+1)%7;render();}
+    else if(a==='report') copyReport();
+    else if(a==='reload') location.reload();
   });
   app.addEventListener('change',function(e){
     if(e.target&&e.target.id==='city'){
@@ -779,15 +840,21 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
 
   function tick(){reconcileNow();render();}
   try{if(navigator.storage&&navigator.storage.persist) navigator.storage.persist();}catch(e){}
-  try{if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});}catch(e){}
+  try{
+    if('serviceWorker' in navigator){
+      var hadCtl=!!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange',function(){if(hadCtl){state.updated=true;render();}});
+      navigator.serviceWorker.register('sw.js').then(function(r){state.reg=r;}).catch(function(){});
+    }
+  }catch(e){}
   loadLocal();
   reconcileNow();
   render();
   connect();
   setInterval(tick,20000);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden) tick();});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){tick();checkUpdate();}});
   window.addEventListener('focus',tick);
-  window.addEventListener('online',function(){state.online=true;pushAll();tick();});
+  window.addEventListener('online',function(){state.online=true;pushAll();tick();checkUpdate();});
   window.addEventListener('offline',function(){state.online=false;render();});
 })();
 </script>
