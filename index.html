@@ -332,11 +332,14 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       t.push({k:'gap',s:540,e:840,cat:'study',t:'مذاكرة في فراغات المحاضرات',n:'راجع محاضرة النهارده'});
       t.push({k:'learn',s:660,e:690,cat:'learn',t:'فيديو برامج (AutoCAD)',n:'٢٠ - ٣٠ دقيقة في فراغ المحاضرات'});
       t.push({k:'lunch',s:900,e:930,cat:'food',t:'غدا'});
-      t.push({k:'rest',s:930,e:990,cat:'play',t:'أنمي أو راحة'});
+      if(dow===0) t.push({k:'fit',s:930,e:960,cat:'fit',t:'مشاية وبطن',n:'مشاية ٢٠ دقيقة وبطن خفيف'});
+      t.push({k:'rest',s:(dow===0?960:930),e:990,cat:'play',t:'أنمي أو راحة'});
       if(dow!==2) t.push({k:'hobby',s:1410,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
     }else{
       t.push({k:'wake',s:570,e:600,cat:'sleep',t:'صحيان وفطار',al:1});
-      if(dow===3||dow===5) t.push({k:'fit',s:600,e:645,cat:'fit',t:'تمرين',n:'٤٥ دقيقة'});
+      if(dow===3) t.push({k:'fit',s:600,e:645,cat:'fit',t:'تمرين: ضغط وبطن',n:'مشاية ١٠ دقايق إحماء ثم ضغط وبطن (٤٥ دقيقة)'});
+      if(dow===4) t.push({k:'fit',s:600,e:645,cat:'fit',t:'مشاية سريعة',n:'٣٠ - ٤٠ دقيقة مشاية، من غير ضغط على العضلات'});
+      if(dow===5) t.push({k:'fit',s:600,e:645,cat:'fit',t:'تمرين: عقلة وبطن',n:'مشاية ١٠ دقايق إحماء ثم عقلة وبطن (٤٥ دقيقة)'});
       if(dow===4){
         t.push({k:'study',s:660,e:810,cat:'study',t:'مذاكرة',n:'بلوك أساسي ٢:٣٠ ساعة',al:1});
       }else{
