@@ -309,7 +309,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
   }
   function nextPrayer(now){
     var m=mins(now),pr=prayers(now),order=['fajr','dhuhr','asr','maghrib','isha'];
-    for(var i=0;i<order.length;i++){var v=pr[order[i]];if(v!=null&&v>m) return {key:order[i],at:v,inM:v-m};}
+    for(var i=0;i<order.length;i++){var v=pr[order[i]];if(v!=null&&v>m) return {key:order[i],at:v,inM:v-m,fri:(order[i]==='dhuhr'&&now.getDay()===5)};}
     var pt=prayers(addDays(now,1));
     if(pt.fajr!=null) return {key:'fajr',at:pt.fajr,inM:1440-m+pt.fajr,tomorrow:true};
     return null;
@@ -324,7 +324,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     {s:1410,t:'هواية خفيفة وبعدها نوم ١٢',d:'جمعة، سبت، حد، اتنين'}
   ];
   function isCollege(dow){return dow===6||dow===0||dow===1||dow===2;}
-  function tasksFor(dow){
+  function tasksFor(dow,d){
     var t=[];
     var lateWork=(dow===2||dow===3||dow===4);
     if(isCollege(dow)){
@@ -340,14 +340,41 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       if(dow===3) t.push({k:'fit',s:600,e:645,cat:'fit',t:'تمرين: ضغط وبطن',n:'مشاية ١٠ دقايق إحماء ثم ضغط وبطن (٤٥ دقيقة)'});
       if(dow===4) t.push({k:'fit',s:600,e:645,cat:'fit',t:'مشاية سريعة',n:'٣٠ - ٤٠ دقيقة مشاية، من غير ضغط على العضلات'});
       if(dow===5) t.push({k:'fit',s:600,e:645,cat:'fit',t:'تمرين: عقلة وبطن',n:'مشاية ١٠ دقايق إحماء ثم عقلة وبطن (٤٥ دقيقة)'});
-      if(dow===4){
-        t.push({k:'study',s:660,e:810,cat:'study',t:'مذاكرة',n:'بلوك أساسي ٢:٣٠ ساعة',al:1});
+      if(dow===5){
+        /* Friday: study, lunch, learn and play are laid out around the Friday prayer */
+        var D=761;
+        try{var pt=d?prayers(d):null;if(pt&&pt.dhuhr!=null) D=pt.dhuhr;}catch(e){}
+        var j0=D-30,j1=D+50,cur=660;
+        t.push({k:'jumua',s:j0,e:j1,cat:'info',t:'الذهاب لصلاة الجمعة',n:'تجهيز ومشي وخطبة وصلاة ورجوع'});
+        [
+          {k:'study',cat:'study',t:'مذاكرة',min:90,shrink:1,al:1},
+          {k:'lunch',cat:'food',t:'غدا وراحة',min:60},
+          {k:'learn',cat:'learn',t:'تعلم برامج (AutoCAD)',min:60},
+          {k:'play',cat:'play',t:'بيس أو أنمي',min:90}
+        ].forEach(function(it){
+          var s0=cur,e0=cur+it.min;
+          if(s0<j1&&e0>j0){
+            if(it.shrink&&j0-s0>=45) e0=j0;
+            else {s0=Math.max(s0,j1);e0=s0+it.min;}
+          }
+          if(it.k==='play') e0=Math.min(e0,990);
+          if(e0-s0<20) return;
+          var o={k:it.k,s:s0,e:e0,cat:it.cat,t:it.t};
+          if(it.cat==='study'||it.cat==='learn') o.n=dur(e0-s0);
+          if(it.al) o.al=1;
+          t.push(o);
+          cur=e0;
+        });
       }else{
-        t.push({k:'study',s:660,e:750,cat:'study',t:'مذاكرة',n:'ساعة ونص',al:1});
-        t.push({k:'learn',s:750,e:810,cat:'learn',t:'تعلم برامج (AutoCAD)',n:'ساعة'});
+        if(dow===4){
+          t.push({k:'study',s:660,e:810,cat:'study',t:'مذاكرة',n:'بلوك أساسي ٢:٣٠ ساعة',al:1});
+        }else{
+          t.push({k:'study',s:660,e:750,cat:'study',t:'مذاكرة',n:'ساعة ونص',al:1});
+          t.push({k:'learn',s:750,e:810,cat:'learn',t:'تعلم برامج (AutoCAD)',n:'ساعة'});
+        }
+        t.push({k:'lunch',s:810,e:870,cat:'food',t:'غدا وراحة'});
+        t.push({k:'play',s:870,e:960,cat:'play',t:'بيس أو أنمي'});
       }
-      t.push({k:'lunch',s:810,e:870,cat:'food',t:'غدا وراحة'});
-      t.push({k:'play',s:870,e:960,cat:'play',t:'بيس أو أنمي'});
       if(dow===5) t.push({k:'hobby',s:1410,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
     }
     t.push({k:'move',s:990,e:1020,cat:'info',t:'اتحرك للشغل',al:1});
@@ -371,9 +398,9 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     });
     return out;
   }
-  function freeWindows(dk,dow,excl){
+  function freeWindows(dk,d,excl){
     var out=[],mks=mkOn(dk,excl);
-    tasksFor(dow).forEach(function(t){
+    tasksFor(d.getDay(),d).forEach(function(t){
       if(t.cat!=='play') return;
       var pcs=[[t.s,t.e]];
       mks.forEach(function(x){pcs=subtract(pcs,x.s,x.e);});
@@ -385,7 +412,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     var m=mins(now),from=Math.ceil((m+1)/5)*5,partial=null;
     for(var i=0;i<14;i++){
       var d=addDays(now,i),dk=dkey(d);
-      var w=freeWindows(dk,d.getDay(),excl);
+      var w=freeWindows(dk,d,excl);
       if(i===0) w=w.map(function(x){return [Math.max(x[0],from),x[1]];}).filter(function(x){return x[1]-x[0]>0;});
       for(var j=0;j<w.length;j++){
         var len=w[j][1]-w[j][0];
@@ -409,8 +436,8 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     var start=maxKey(state.meta.since,dkey(addDays(now,-7)));
     var d=parseKey(start);
     while(dkey(d)<=today){
-      (function(dk,dow){
-        tasksFor(dow).forEach(function(t){
+      (function(dk,dow,dd){
+        tasksFor(dow,dd).forEach(function(t){
           if(!CATS[t.cat]) return;
           var id='o'+dk+'_'+t.k,x=state.mk[id];
           if(isDone(dk,t.k)){
@@ -425,7 +452,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
           state.mk[id]={cat:t.cat,min:min,day:slot.day,s:slot.s,e:slot.e,src:dk,sk:t.k,tt:t.t,tr:0,u:t0};
           res.mk=true;
         });
-      })(dkey(d),d.getDay());
+      })(dkey(d),d.getDay(),d);
       d=addDays(d,1);
     }
     Object.keys(state.mk).forEach(function(id){
@@ -509,7 +536,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
   var KIND={pray:0,task:1,mk:2};
   function dayRows(dk,d){
     var dow=d.getDay(),rows=[],mks=mkOn(dk,null);
-    tasksFor(dow).forEach(function(t){
+    tasksFor(dow,d).forEach(function(t){
       var o={kind:'task',task:t,s:t.s,e:t.e,taken:false};
       if(t.cat==='play'){
         var pcs=[[t.s,t.e]];
@@ -522,7 +549,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     });
     var pr=prayers(d);
     PNAMES.forEach(function(p){
-      if(pr[p[0]]!=null) rows.push({kind:'pray',key:p[0],title:p[1],s:pr[p[0]],e:pr[p[0]],sun:p[0]==='sunrise'});
+      if(pr[p[0]]!=null) rows.push({kind:'pray',key:p[0],title:(p[0]==='dhuhr'&&dow===5?'صلاة الجمعة':p[1]),s:pr[p[0]],e:pr[p[0]],sun:p[0]==='sunrise'});
     });
     mks.forEach(function(x){rows.push({kind:'mk',mk:x,id:x.id,s:x.s,e:x.e});});
     rows.sort(function(a,b){return a.s-b.s||KIND[a.kind]-KIND[b.kind];});
@@ -612,7 +639,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     dates.forEach(function(d){
       var dk=dkey(d);
       if(dk>today||dk<since) return;
-      tasksFor(d.getDay()).forEach(function(t){
+      tasksFor(d.getDay(),d).forEach(function(t){
         if(!CATS[t.cat]) return;
         var mk=state.mk['o'+dk+'_'+t.k];
         var done=isDone(dk,t.k)||(mkLive(mk)&&!!mk.done);
@@ -636,7 +663,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     dates.forEach(function(d){
       var dk=dkey(d);
       if(dk>today||dk<since) return;
-      tasksFor(d.getDay()).forEach(function(t){
+      tasksFor(d.getDay(),d).forEach(function(t){
         if(!CATS[t.cat]) return;
         var mk=state.mk['o'+dk+'_'+t.k],mdone=mkLive(mk)&&!!mk.done,done=isDone(dk,t.k);
         var over=dk<today||m>=t.e;
@@ -702,7 +729,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       cells+='<span class="v">'+rowTitle(nu.r)+'</span><span class="s">'+fmt(nu.r.s)+' · '+(nu.dk===today?'بعد '+dur(nu.inM):dayLabel(nu.dk,today))+'</span>';
     }else cells+='<span class="v">مفيش حاجة مستنية</span>';
     cells+='</div><div class="cell pray"><span class="lb">الصلاة الجاية</span>';
-    if(np) cells+='<span class="v">'+PSHORT[np.key]+'</span><span class="s">'+fmt(np.at)+' · بعد '+dur(np.inM)+'</span>';
+    if(np) cells+='<span class="v">'+(np.fri?'الجمعة':PSHORT[np.key])+'</span><span class="s">'+fmt(np.at)+' · بعد '+dur(np.inM)+'</span>';
     else cells+='<span class="v">-</span>';
     cells+='</div>';
     var nowcard='<section class="nowcard" aria-label="دلوقتي"><div class="clock"><span class="big">'+fmt(m)+'</span><span class="dtl">'+DAYS[now.getDay()]+' '+ar(now.getDate())+' '+MONTHS[now.getMonth()]+' '+ar(now.getFullYear())+'</span></div><div class="cells">'+cells+'</div></section>';
