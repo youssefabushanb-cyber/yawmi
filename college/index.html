@@ -128,6 +128,10 @@ input[type=text],input[type=date],select{
 .r2 select{flex:1}
 .quick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
 
+.rk{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);color:var(--ink-2);font-family:var(--f-display);font-weight:700;font-size:15px}
+.rk.warn{background:var(--warn-soft);color:var(--warn)}
+.rk.bad{background:var(--bad-soft);color:var(--bad)}
+.prow{grid-template-columns:auto minmax(0,1fr) auto}
 .sub-stats{font-size:13px;color:var(--ink-2)}
 .sw{display:flex;gap:12px;border:0;margin:0;padding:6px 2px;flex-wrap:wrap}
 .sw label{display:block;position:relative}
@@ -312,6 +316,22 @@ function studyBlock(){
     +'<button class="btn'+(run?' stop':'')+'" data-act="timer">'+(run?'وقّف وسجّل':'ابدأ مذاكرة')+'</button></div>'
     +'<div class="quick"><span>سجّل يدوي</span>'+[15,30,60].map(function(m){return '<button class="chip" data-act="log" data-m="'+m+'">+'+m+' د</button>'}).join('')+'</div></section>';
 }
+function priorityBlock(){
+  var t0=today();
+  var open=state.sheets.filter(function(s){return s.status<2}).sort(function(a,b){return a.due.localeCompare(b.due)});
+  if(!open.length)return '';
+  var shown=open.slice(0,5);
+  var rows=shown.map(function(s,i){
+    var d=diff(s.due,t0),cls=d<0?'bad':d<=1?'warn':'';
+    var when=d<0?lateText(-d):d===0?'يتسلّم النهارده':d===1?'يتسلّم بكرة':d===2?'باقي يومين':'باقي '+d+' '+dw(d);
+    var pips=[1,2,3].map(function(k){return '<i'+(k<=s.status?' class="on"':'')+'></i>'}).join('');
+    return '<li class="row prow"><span class="rk '+cls+'">'+(i+1)+'</span>'
+      +'<div><div class="t">'+esc(s.title)+'</div><div class="meta">'+dot(s.sub)+'<span>'+esc(subLabel(s.sub))+' · '+dayLabel(s.due)+'</span><span class="tag'+(cls?' '+cls:'')+'">'+when+'</span></div></div>'
+      +'<button class="st s'+s.status+'" data-act="status" data-id="'+esc(s.id)+'" aria-label="الحالة: '+STATUS[s.status]+'، دوس للتغيير"><span>'+STATUS[s.status]+'</span><span class="pips">'+pips+'</span></button></li>';
+  }).join('');
+  return '<h2>الأولويات</h2><p class="cap">مرتبة بالأقرب تسليم. ابدأ من فوق.</p><ul class="list">'+rows+'</ul>'
+    +(open.length>5?'<p class="hint"><button class="chip" data-act="tab" data-id="sheets">كل الشيتات ('+open.length+')</button></p>':'');
+}
 function vToday(){
   var t0=today();
   var list=state.tasks.filter(function(t){return t.date===t0||(!t.done&&t.date<t0)||(t.done&&t.doneDate===t0)});
@@ -321,6 +341,7 @@ function vToday(){
   var dn=list.filter(function(t){return t.done});
   var msg=!total?'مفيش مهام النهارده':done===total?'كله خلص النهارده':'خلصت من مهام النهارده';
   return '<section class="prog"><div class="prog-top"><span class="big">'+done+'<small>/'+total+'</small></span><span class="lbl">'+msg+'</span></div><div class="bar"><i style="--w:'+pct+'%"></i></div></section>'
+    +priorityBlock()
     +'<form class="add" data-form="task" autocomplete="off"><div class="r1"><label class="sr" for="t-title">المهمة</label><input type="text" id="t-title" name="ttl" placeholder="مثلاً: أحل شيت 3 برمجة" required><button class="btn" type="submit">أضيف</button></div>'
     +'<div class="opts"><label class="sr" for="t-sub">المادة</label><select id="t-sub" name="sub">'+subOpts(ui.sub)+'</select>'
     +'<label class="sr" for="t-type">النوع</label><select id="t-type" name="type">'+typeOpts(ui.type)+'</select>'
