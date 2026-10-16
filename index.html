@@ -317,7 +317,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
 
   /* ---------- weekly template ---------- */
   var ALARMS=[
-    {s:420,t:'صحيان - يوم كلية',d:'سبت، حد، اتنين، تلات'},
+    {s:390,t:'صحيان - يوم كلية',d:'سبت، حد، اتنين، تلات'},
     {s:570,t:'صحيان - فطار وبعدين تمرين',d:'أربع، خميس، جمعة'},
     {s:660,t:'ابدأ المذاكرة',d:'أربع، خميس، جمعة'},
     {s:990,t:'اتحرك للشغل',d:'كل يوم'},
@@ -328,7 +328,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     var t=[];
     var lateWork=(dow===2||dow===3||dow===4);
     if(isCollege(dow)){
-      t.push({k:'wake',s:420,e:480,cat:'sleep',t:'صحيان وتجهيز',n:'جهّز الفطار والهدوم بالليل',al:1});
+      t.push({k:'wake',s:390,e:480,cat:'sleep',t:'صحيان وتجهيز',n:'جهّز الفطار والهدوم بالليل',al:1});
       t.push({k:'gap',s:540,e:840,cat:'study',t:'مذاكرة في فراغات المحاضرات',n:'راجع محاضرة النهارده'});
       t.push({k:'learn',s:660,e:690,cat:'learn',t:'فيديو برامج (AutoCAD)',n:'٢٠ - ٣٠ دقيقة في فراغ المحاضرات'});
       t.push({k:'lunch',s:900,e:930,cat:'food',t:'غدا'});
