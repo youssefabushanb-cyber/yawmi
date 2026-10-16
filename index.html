@@ -409,10 +409,14 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     });
     return out.sort(function(a,b){return a[0]-b[0];});
   }
-  function place(min,now,excl){
+  /* Weeks are independent: a week runs Saturday to Friday and a makeup may
+     only land inside the week of the task that was missed. */
+  function weekEndKey(key){var d=parseKey(key);return dkey(addDays(d,(5-d.getDay()+7)%7));}
+  function place(min,now,excl,limit){
     var m=mins(now),from=Math.ceil((m+1)/5)*5,partial=null;
     for(var i=0;i<14;i++){
       var d=addDays(now,i),dk=dkey(d);
+      if(limit&&dk>limit) break;
       var w=freeWindows(dk,d,excl);
       if(i===0) w=w.map(function(x){return [Math.max(x[0],from),x[1]];}).filter(function(x){return x[1]-x[0]>0;});
       for(var j=0;j<w.length;j++){
@@ -422,7 +426,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       }
     }
     if(partial) return partial;
-    return {day:dkey(addDays(now,1)),s:870,e:870+min};
+    return null;
   }
 
   /* Anything that passed unchecked counts as missed. Missed study, practice and
@@ -445,11 +449,13 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
             if(mkLive(x)&&!x.done){x.del=1;x.u=t0;res.mk=true;}
             return;
           }
+          if(x&&x.drop) return;
           if(mkLive(x)) return;
           var over=dk<today||m>=t.e;
           if(!over) return;
           var min=Math.min(60,Math.max(20,t.e-t.s));
-          var slot=place(min,now,id);
+          var slot=place(min,now,id,weekEndKey(dk));
+          if(!slot){state.mk[id]={del:1,drop:1,src:dk,sk:t.k,u:t0};res.mk=true;return;}
           state.mk[id]={cat:t.cat,min:min,day:slot.day,s:slot.s,e:slot.e,src:dk,sk:t.k,tt:t.t,tr:0,u:t0};
           res.mk=true;
         });
@@ -462,7 +468,8 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       if(x.done) return;
       var over=x.day<today||(x.day===today&&m>=x.e);
       if(!over) return;
-      var slot=place(x.min,now,id);
+      var slot=place(x.min,now,id,weekEndKey(x.src||x.day));
+      if(!slot){x.del=1;x.drop=1;x.u=t0;res.mk=true;return;}
       x.day=slot.day;x.s=slot.s;x.e=slot.e;x.tr=(x.tr||0)+1;x.u=t0;
       res.mk=true;
     });
