@@ -320,6 +320,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     {s:390,t:'صحيان - يوم كلية',d:'سبت، حد، اتنين، تلات'},
     {s:570,t:'صحيان - فطار وبعدين تمرين',d:'أربع، خميس، جمعة'},
     {s:660,t:'ابدأ المذاكرة',d:'أربع، خميس، جمعة'},
+    {s:970,t:'ورد القرآن',d:'كل يوم'},
     {s:990,t:'اتحرك للشغل',d:'كل يوم'},
     {s:1410,t:'هواية خفيفة وبعدها نوم ١٢',d:'جمعة، حد'}
   ];
@@ -333,8 +334,8 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       t.push({k:'learn',s:660,e:690,cat:'learn',t:'فيديو برامج (AutoCAD)',n:'٢٠ - ٣٠ دقيقة في فراغ المحاضرات'});
       t.push({k:'lunch',s:900,e:930,cat:'food',t:'غدا'});
       if(dow===0) t.push({k:'fit',s:930,e:960,cat:'fit',t:'مشاية وبطن',n:'مشاية ٢٠ دقيقة وبطن خفيف'});
-      if(dow===0) t.push({k:'rest',s:960,e:990,cat:'play',t:'أنمي أو راحة'});
-      else t.push({k:'rest',s:930,e:990,cat:'sleep',t:'راحة قبل الشغل'});
+      if(dow===0) t.push({k:'rest',s:960,e:970,cat:'play',t:'أنمي أو راحة'});
+      else t.push({k:'rest',s:930,e:970,cat:'sleep',t:'راحة قبل الشغل'});
       if(dow===0) t.push({k:'hobby',s:1410,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
     }else{
       t.push({k:'wake',s:570,e:600,cat:'sleep',t:'صحيان وفطار',al:1});
@@ -358,7 +359,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
             if(it.shrink&&j0-s0>=45) e0=j0;
             else {s0=Math.max(s0,j1);e0=s0+it.min;}
           }
-          if(it.k==='play') e0=Math.min(e0,990);
+          if(it.k==='play') e0=Math.min(e0,970);
           if(e0-s0<20) return;
           var o={k:it.k,s:s0,e:e0,cat:it.cat,t:it.t};
           if(it.cat==='study'||it.cat==='learn') o.n=dur(e0-s0);
@@ -378,6 +379,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       }
       if(dow===5) t.push({k:'hobby',s:1410,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
     }
+    t.push({k:'quran',s:970,e:990,cat:'food',t:'ورد القرآن',n:'٢٠ دقيقة قراءة',al:1});
     t.push({k:'move',s:990,e:1020,cat:'info',t:'اتحرك للشغل',al:1});
     t.push({k:'work',s:1020,e:(lateWork?1500:1380),cat:'info',t:'شغل',n:(lateWork?'لحد ١ الفجر':'لحد ١١ بالليل')});
     return t;
