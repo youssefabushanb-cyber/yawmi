@@ -479,12 +479,42 @@ document.addEventListener('submit',function(e){
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&ui.ready)render()});
 setInterval(function(){var c=document.getElementById('clock');if(c&&state.timer)c.textContent=fmtClock(Date.now()-state.timer.start)},1000);
 
+/* ---------- data.json from the repo (edited by Claude) ---------- */
+async function syncRemote(){
+  try{
+    var r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return;
+    var d=await r.json();
+    ['subjects','tasks','sheets'].forEach(function(c){
+      var incoming=Array.isArray(d[c])?d[c]:[],ids={};
+      incoming.forEach(function(x){
+        if(!x||!x.id)return;
+        ids[x.id]=1;
+        var cur=state[c].find(function(y){return y.id===x.id});
+        if(cur){
+          var keep={};
+          if(c==='tasks'){keep.done=cur.done;keep.doneDate=cur.doneDate}
+          if(c==='sheets'){keep.status=cur.status}
+          Object.assign(cur,x,keep);cur.r=true;
+        }else{
+          var n=Object.assign({},x);n.r=true;
+          if(c==='tasks'&&n.done===undefined)n.done=false;
+          if(c==='sheets'&&n.status===undefined)n.status=0;
+          state[c].push(n);
+        }
+      });
+      state[c]=state[c].filter(function(y){return !y.r||ids[y.id]});
+    });
+    local();
+  }catch(e){}
+}
+
 /* ---------- start ---------- */
 render();
 (async function init(){
   var db=null;
   try{if(window.claude&&window.claude.use)db=await window.claude.use('db')}catch(e){}
-  if(!db){loadLocal();ui.ready=true;ui.mode='local';setSync('local');render();return}
+  if(!db){loadLocal();ui.ready=true;ui.mode='local';setSync('local');render();await syncRemote();render();return}
   DB=db;ui.mode='db';
   var got={},n=0;
   function fire(name){if(!got[name]){got[name]=1;n++}if(n>=5)ui.ready=true;render()}
