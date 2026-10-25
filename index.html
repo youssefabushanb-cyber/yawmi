@@ -466,11 +466,8 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       var x=state.mk[id];
       if(x.del){if(t0-(x.u||0)>14*864e5){delete state.mk[id];res.mk=true;}return;}
       if(x.done) return;
-      /* the schedule changed and the missed task no longer exists: drop its makeup */
-      if(x.src&&x.sk){
-        var sd=parseKey(x.src),gone=!tasksFor(sd.getDay(),sd).some(function(q){return q.k===x.sk;});
-        if(gone||/AutoCAD/.test(x.tt||'')){x.del=1;x.drop=1;x.u=t0;res.mk=true;return;}
-      }
+      /* the AutoCAD course was replaced: cancel only its leftover makeups */
+      if(/AutoCAD/.test(x.tt||'')){x.del=1;x.drop=1;x.u=t0;res.mk=true;return;}
       var over=x.day<today||(x.day===today&&m>=x.e);
       if(!over) return;
       var slot=place(x.min,now,id,weekEndKey(x.src||x.day));
