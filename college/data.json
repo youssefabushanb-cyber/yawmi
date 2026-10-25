@@ -9,6 +9,16 @@
       "id": "steel",
       "name": "ستيل",
       "color": 6
+    },
+    {
+      "id": "hr",
+      "name": "HR",
+      "color": 3
+    },
+    {
+      "id": "structure",
+      "name": "ستراكشر",
+      "color": 4
     }
   ],
   "tasks": [],
@@ -48,6 +58,31 @@
       "title": "شيت 2",
       "sub": "steel",
       "due": "2026-11-08"
+    },
+    {
+      "id": "hr-ppt",
+      "title": "PowerPoint",
+      "sub": "hr"
+    },
+    {
+      "id": "steel-ppt",
+      "title": "PowerPoint",
+      "sub": "steel"
+    },
+    {
+      "id": "steel-model",
+      "title": "ماكت",
+      "sub": "steel"
+    },
+    {
+      "id": "struct-ppt",
+      "title": "PowerPoint",
+      "sub": "structure"
+    },
+    {
+      "id": "struct-project",
+      "title": "مشروع برامج",
+      "sub": "structure"
     }
   ]
 }

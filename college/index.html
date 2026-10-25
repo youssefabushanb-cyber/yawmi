@@ -318,15 +318,15 @@ function studyBlock(){
 }
 function priorityBlock(){
   var t0=today();
-  var open=state.sheets.filter(function(s){return s.status<2}).sort(function(a,b){return a.due.localeCompare(b.due)});
+  var open=state.sheets.filter(function(s){return s.status<2}).sort(function(a,b){return dueKey(a).localeCompare(dueKey(b))});
   if(!open.length)return '';
   var shown=open.slice(0,5);
   var rows=shown.map(function(s,i){
-    var d=diff(s.due,t0),cls=d<0?'bad':d<=1?'warn':'';
-    var when=d<0?lateText(-d):d===0?'يتسلّم النهارده':d===1?'يتسلّم بكرة':d===2?'باقي يومين':'باقي '+d+' '+dw(d);
+    var nd=!s.due,d=nd?999:diff(s.due,t0),cls=d<0?'bad':d<=1?'warn':'';
+    var when=nd?'من غير ميعاد':d<0?lateText(-d):d===0?'يتسلّم النهارده':d===1?'يتسلّم بكرة':d===2?'باقي يومين':'باقي '+d+' '+dw(d);
     var pips=[1,2,3].map(function(k){return '<i'+(k<=s.status?' class="on"':'')+'></i>'}).join('');
     return '<li class="row prow"><span class="rk '+cls+'">'+(i+1)+'</span>'
-      +'<div><div class="t">'+esc(s.title)+'</div><div class="meta">'+dot(s.sub)+'<span>'+esc(subLabel(s.sub))+' · '+dayLabel(s.due)+'</span><span class="tag'+(cls?' '+cls:'')+'">'+when+'</span></div></div>'
+      +'<div><div class="t">'+esc(s.title)+'</div><div class="meta">'+dot(s.sub)+'<span>'+esc(subLabel(s.sub))+(s.due?' · '+dayLabel(s.due):'')+'</span><span class="tag'+(cls?' '+cls:'')+'">'+when+'</span></div></div>'
       +'<button class="st s'+s.status+'" data-act="status" data-id="'+esc(s.id)+'" aria-label="الحالة: '+STATUS[s.status]+'، دوس للتغيير"><span>'+STATUS[s.status]+'</span><span class="pips">'+pips+'</span></button></li>';
   }).join('');
   return '<h2>الأولويات</h2><p class="cap">مرتبة بالأقرب تسليم. ابدأ من فوق.</p><ul class="list">'+rows+'</ul>'
@@ -350,19 +350,21 @@ function vToday(){
     +(total?'':'<p class="empty">اكتب أول مهمة فوق وحدد المادة واليوم.</p>')
     +studyBlock();
 }
+function dueKey(s){return s.due||'9999-12-31'}
 function sheetRow(s){
-  var t0=today(),late=s.status<2&&s.due<t0,tag='';
-  if(late)tag='<span class="tag bad">'+lateText(diff(t0,s.due))+'</span>';
+  var t0=today(),late=!!s.due&&s.status<2&&s.due<t0,tag='';
+  if(!s.due&&s.status<2)tag='<span class="tag">من غير ميعاد</span>';
+  else if(late)tag='<span class="tag bad">'+lateText(diff(t0,s.due))+'</span>';
   else if(s.status<2)tag='<span class="tag'+(diff(s.due,t0)<=1?' warn':'')+'">يتسلّم '+rel(s.due)+'</span>';
   var pips=[1,2,3].map(function(i){return '<i'+(i<=s.status?' class="on"':'')+'></i>'}).join('');
-  return '<li class="row sheetrow'+(s.status>=2?' done':'')+'"><div><div class="t">'+esc(s.title)+'</div><div class="meta">'+dot(s.sub)+'<span>'+esc(subLabel(s.sub))+' · '+dayLabel(s.due)+'</span>'+tag+'</div></div>'
+  return '<li class="row sheetrow'+(s.status>=2?' done':'')+'"><div><div class="t">'+esc(s.title)+'</div><div class="meta">'+dot(s.sub)+'<span>'+esc(subLabel(s.sub))+(s.due?' · '+dayLabel(s.due):'')+'</span>'+tag+'</div></div>'
     +'<button class="st s'+s.status+'" data-act="status" data-id="'+esc(s.id)+'" aria-label="الحالة: '+STATUS[s.status]+'، دوس للتغيير"><span>'+STATUS[s.status]+'</span><span class="pips">'+pips+'</span></button>'
     +'<button class="x" data-act="del-sheet" data-id="'+esc(s.id)+'" aria-label="احذف الشيت">×</button></li>';
 }
 function vSheets(){
   var all=state.sheets,open=all.filter(function(s){return s.status<2}),closed=all.filter(function(s){return s.status>=2});
   var shown=ui.filter==='open'?open:ui.filter==='done'?closed:all;
-  shown=shown.slice().sort(function(a,b){return ((a.status>=2)-(b.status>=2))||a.due.localeCompare(b.due)});
+  shown=shown.slice().sort(function(a,b){return ((a.status>=2)-(b.status>=2))||dueKey(a).localeCompare(dueKey(b))});
   function chip(v,l,n){return '<button class="chip" data-act="filter" data-v="'+v+'" aria-pressed="'+(ui.filter===v)+'">'+l+' '+n+'</button>'}
   return '<form class="add" data-form="sheet" autocomplete="off"><div class="r1"><label class="sr" for="s-title">اسم الشيت</label><input type="text" id="s-title" name="ttl" placeholder="مثلاً: شيت 4" required><button class="btn" type="submit">أضيف</button></div>'
     +'<div class="opts"><label class="sr" for="s-sub">المادة</label><select id="s-sub" name="sub">'+subOpts(ui.shsub)+'</select>'
@@ -490,7 +492,7 @@ document.addEventListener('submit',function(e){
     var i=document.getElementById('t-title');if(i)i.focus();
   }else if(kind==='sheet'){
     ui.shsub=fd.get('sub')||'';
-    save('sheets',{id:uid(),title:ttl,sub:ui.shsub,due:fd.get('due')||today(),status:0});
+    save('sheets',{id:uid(),title:ttl,sub:ui.shsub,due:fd.get('due')||'',status:0});
     f.reset();render();
   }else if(kind==='subject'){
     save('subjects',{id:uid(),name:ttl,color:clampColor(fd.get('color'))});
@@ -547,7 +549,7 @@ render();
   watch('tasks',function(docs){state.tasks=docs.map(function(d){var x=d.data()||{};
     return {id:d.id,title:String(x.title||''),sub:x.sub||'',type:x.type||'مذاكرة',date:x.date||today(),done:!!x.done,doneDate:x.doneDate,ex:!!x.ex}})});
   watch('sheets',function(docs){state.sheets=docs.map(function(d){var x=d.data()||{};
-    return {id:d.id,title:String(x.title||''),sub:x.sub||'',due:x.due||today(),status:Math.min(3,Math.max(0,+x.status||0)),ex:!!x.ex}})});
+    return {id:d.id,title:String(x.title||''),sub:x.sub||'',due:x.due||'',status:Math.min(3,Math.max(0,+x.status||0)),ex:!!x.ex}})});
   watch('study',function(docs){state.study={};docs.forEach(function(d){var x=d.data()||{};state.study[d.id]=x.m||{}})});
   watch('meta',function(docs){var t=docs.find(function(d){return d.id==='timer'}),x=t&&t.data();state.timer=x&&x.start?{sub:x.sub||'',start:+x.start}:null});
   setSync('saved');
