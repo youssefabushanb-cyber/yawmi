@@ -322,7 +322,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     {s:660,t:'ابدأ المذاكرة',d:'أربع، خميس، جمعة'},
     {s:970,t:'ورد القرآن',d:'كل يوم'},
     {s:990,t:'اتحرك للشغل',d:'كل يوم'},
-    {s:1425,t:'هواية خفيفة وبعدها نوم ١٢',d:'جمعة، حد'}
+    {s:1425,t:'قراية الكتب وبعدها نوم ١٢',d:'سبت، حد، اتنين، جمعة'}
   ];
   function isCollege(dow){return dow===6||dow===0||dow===1||dow===2;}
   function tasksFor(dow,d){
@@ -335,7 +335,9 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       else{
         t.push({k:'fit',s:930,e:955,cat:'fit',t:'مشاية خفيفة',n:'٢٠ - ٢٥ دقيقة مشاية هادية، من غير مجهود'});
       }
-      if(dow===0) t.push({k:'hobby',s:1425,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
+      if(dow===2){}
+      else if(dow===0) t.push({k:'rest',s:955,e:970,cat:'play',t:'أنمي أو راحة'});
+      else t.push({k:'rest',s:955,e:970,cat:'sleep',t:'راحة قبل الشغل'});
     }else{
       t.push({k:'wake',s:570,e:600,cat:'sleep',t:'صحيان وفطار',al:1});
       if(dow===3) t.push({k:'fit',s:600,e:645,cat:'fit',t:'تمرين: ضغط وبطن',n:'مشاية ١٠ دقايق إحماء ثم ضغط وبطن (٤٥ دقيقة)'});
@@ -358,7 +360,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
             if(it.shrink&&j0-s0>=45) e0=j0;
             else {s0=Math.max(s0,j1);e0=s0+it.min;}
           }
-          if(it.k==='play') e0=Math.min(e0,955);
+          if(it.k==='play') e0=Math.min(e0,970);
           if(e0-s0<20) return;
           var o={k:it.k,s:s0,e:e0,cat:it.cat,t:it.t};
           if(it.cat==='study'||it.cat==='learn') o.n=dur(e0-s0);
@@ -370,11 +372,11 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
         t.push({k:'study',s:660,e:750,cat:'study',t:'مذاكرة',n:'ساعة ونص',al:1});
         t.push({k:'learn',s:750,e:810,cat:'learn',t:'كورس سوفت سكيلز',n:'ساعة'});
         t.push({k:'lunch',s:810,e:870,cat:'food',t:'غدا وراحة'});
-        t.push({k:'play',s:870,e:955,cat:'play',t:'بيس أو أنمي'});
+        t.push({k:'play',s:870,e:(dow===3||dow===4?955:970),cat:'play',t:'بيس أو أنمي'});
       }
-      if(dow===5) t.push({k:'hobby',s:1425,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
     }
-    t.push({k:'read',s:955,e:970,cat:'food',t:'قراءة كتب',n:'١٥ دقيقة'});
+    if(lateWork) t.push({k:'read',s:955,e:970,cat:'food',t:'قراءة كتب',n:'١٥ دقيقة'});
+    else t.push({k:'read',s:1425,e:1440,cat:'food',t:'قراءة كتب قبل النوم',n:'١٥ دقيقة ثم نوم ١٢',al:1});
     t.push({k:'quran',s:970,e:990,cat:'food',t:'ورد القرآن',n:'٢٠ دقيقة قراءة',al:1});
     t.push({k:'move',s:990,e:1020,cat:'info',t:'اتحرك للشغل',al:1});
     t.push({k:'work',s:1020,e:(lateWork?1500:1380),cat:'info',t:'شغل',n:(lateWork?'لحد ١ الفجر':'لحد ١١ بالليل')});
