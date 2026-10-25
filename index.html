@@ -193,7 +193,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
   var DAYS=['الأحد','الاثنين','الثلاثاء','الأربع','الخميس','الجمعة','السبت'];
   var SHORT=['حد','اتنين','تلات','أربع','خميس','جمعة','سبت'];
   var MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  var CATS={study:'مذاكرة',fit:'تمرين',learn:'برامج'};
+  var CATS={study:'مذاكرة',fit:'تمرين',learn:'سوفت سكيلز'};
   var CITIES=[
     {n:'القاهرة / الجيزة',lat:30.0444,lng:31.2357},
     {n:'الإسكندرية',lat:31.2001,lng:29.9187},
@@ -322,7 +322,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
     {s:660,t:'ابدأ المذاكرة',d:'أربع، خميس، جمعة'},
     {s:970,t:'ورد القرآن',d:'كل يوم'},
     {s:990,t:'اتحرك للشغل',d:'كل يوم'},
-    {s:1410,t:'هواية خفيفة وبعدها نوم ١٢',d:'جمعة، حد'}
+    {s:1425,t:'هواية خفيفة وبعدها نوم ١٢',d:'جمعة، حد'}
   ];
   function isCollege(dow){return dow===6||dow===0||dow===1||dow===2;}
   function tasksFor(dow,d){
@@ -334,8 +334,8 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       if(dow===0) t.push({k:'fit',s:930,e:960,cat:'fit',t:'مشاية وبطن',n:'مشاية ٢٠ دقيقة وبطن خفيف'});
       if(dow===0) t.push({k:'rest',s:960,e:970,cat:'play',t:'أنمي أو راحة'});
       else t.push({k:'study',s:930,e:970,cat:'study',t:'مذاكرة في البيت',n:'٤٠ دقيقة بعد الغدا',al:1});
-      if(dow===6||dow===1) t.push({k:'learn',s:1410,e:1440,cat:'learn',t:'فيديو برامج (AutoCAD)',n:'٣٠ دقيقة قبل النوم'});
-      if(dow===0) t.push({k:'hobby',s:1410,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
+      if(dow===6||dow===1) t.push({k:'learn',s:1425,e:1440,cat:'learn',t:'كورس سوفت سكيلز',n:'١٥ دقيقة قبل النوم'});
+      if(dow===0) t.push({k:'hobby',s:1425,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
     }else{
       t.push({k:'wake',s:570,e:600,cat:'sleep',t:'صحيان وفطار',al:1});
       if(dow===3) t.push({k:'fit',s:600,e:645,cat:'fit',t:'تمرين: ضغط وبطن',n:'مشاية ١٠ دقايق إحماء ثم ضغط وبطن (٤٥ دقيقة)'});
@@ -350,7 +350,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
         [
           {k:'study',cat:'study',t:'مذاكرة',min:90,shrink:1,al:1},
           {k:'lunch',cat:'food',t:'غدا وراحة',min:60},
-          {k:'learn',cat:'learn',t:'تعلم برامج (AutoCAD)',min:60},
+          {k:'learn',cat:'learn',t:'كورس سوفت سكيلز',min:60},
           {k:'play',cat:'play',t:'بيس أو أنمي',min:90}
         ].forEach(function(it){
           var s0=cur,e0=cur+it.min;
@@ -371,12 +371,12 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
           t.push({k:'study',s:660,e:810,cat:'study',t:'مذاكرة',n:'بلوك أساسي ٢:٣٠ ساعة',al:1});
         }else{
           t.push({k:'study',s:660,e:750,cat:'study',t:'مذاكرة',n:'ساعة ونص',al:1});
-          t.push({k:'learn',s:750,e:810,cat:'learn',t:'تعلم برامج (AutoCAD)',n:'ساعة'});
+          t.push({k:'learn',s:750,e:810,cat:'learn',t:'كورس سوفت سكيلز',n:'ساعة'});
         }
         t.push({k:'lunch',s:810,e:870,cat:'food',t:'غدا وراحة'});
         t.push({k:'play',s:870,e:960,cat:'play',t:'بيس أو أنمي'});
       }
-      if(dow===5) t.push({k:'hobby',s:1410,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
+      if(dow===5) t.push({k:'hobby',s:1425,e:1440,cat:'play',t:'هواية خفيفة ثم نوم ١٢',al:1});
     }
     t.push({k:'quran',s:970,e:990,cat:'food',t:'ورد القرآن',n:'٢٠ دقيقة قراءة',al:1});
     t.push({k:'move',s:990,e:1020,cat:'info',t:'اتحرك للشغل',al:1});
@@ -798,7 +798,7 @@ select{padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);ba
       '<footer class="foot"><div class="stat"><span class="dot'+(state.online?'':' off')+'"></span><span>'+status+synced+'</span></div>'+
       '<p>التواريخ والمواعيد ومواعيد الصلاة بتتحسب من ساعة موبايلك كل ما تفتح الصفحة، ومفيش حاجة محتاجة تتضاف يدوي.</p>'+
       '<p>مواعيد الصلاة بطريقة الهيئة المصرية العامة للمساحة، وممكن تفرق دقيقة أو اتنين عن التقويم الرسمي.</p>'+
-      '<p>التعويض بيتحسب من مذاكرة وتمرين وبرامج اتعدّى ميعادها من غير علامة، ومن أول يوم فتحت فيه الصفحة.</p></footer>';
+      '<p>التعويض بيتحسب من مذاكرة وتمرين وكورس اتعدّى ميعادها من غير علامة، ومن أول يوم فتحت فيه الصفحة.</p></footer>';
 
     if(html!==lastHtml){
       var f=focusKey();
