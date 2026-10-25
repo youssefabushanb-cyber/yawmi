@@ -62,27 +62,32 @@
     {
       "id": "hr-ppt",
       "title": "PowerPoint",
-      "sub": "hr"
+      "sub": "hr",
+      "due": "2026-12-01"
     },
     {
       "id": "steel-ppt",
       "title": "PowerPoint",
-      "sub": "steel"
+      "sub": "steel",
+      "due": "2026-12-01"
     },
     {
       "id": "steel-model",
       "title": "ماكت",
-      "sub": "steel"
+      "sub": "steel",
+      "due": "2026-12-01"
     },
     {
       "id": "struct-ppt",
       "title": "PowerPoint",
-      "sub": "structure"
+      "sub": "structure",
+      "due": "2026-12-01"
     },
     {
       "id": "struct-project",
       "title": "مشروع برامج",
-      "sub": "structure"
+      "sub": "structure",
+      "due": "2026-12-01"
     }
   ]
 }
